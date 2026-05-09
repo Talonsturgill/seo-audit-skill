@@ -65,10 +65,28 @@ python3 scripts/pagespeed.py "https://<domain>/" \
     --out output/<domain>-psi.json
 ```
 
-Run in **parallel** with the crawl when possible (separate Bash call). Uses
-the public PSI API anonymously; if `PSI_API_KEY` is set, uses it for higher
-quotas. ~30s per call. Skip if rate-limited (HTTP 429) or if the user
-just wants a fast crawl-only report.
+Run in **parallel** with the crawl when possible (separate Bash call).
+~30s per call.
+
+**API key handling:**
+
+- If `PSI_API_KEY` is already in the environment (set by the user, or
+  inferred from their profile / custom instructions / a prior message),
+  use it: prefix the command with `PSI_API_KEY=<key> python3 ...`.
+- If no key is set, run the script without one. It will succeed for the
+  first few calls per session but may hit HTTP 429 quickly.
+- **On 429 (script exits with code 1 + a "rate-limited" message):** ask
+  the user once:
+  > "Google PSI is rate-limiting anonymous calls. Paste your free PSI API
+  > key (`PSI_API_KEY=...`) and I'll retry, or say 'skip' to continue
+  > without PageSpeed data. Get a key in 30s at
+  > https://developers.google.com/speed/docs/insights/v5/get-started"
+  - If they paste a key, retry the same `pagespeed.py` command with
+    `PSI_API_KEY=<their_key>` prepended.
+  - If they say skip (or anything that isn't a key), drop the PSI step
+    and continue with a crawl-only report.
+- **Never echo the API key back** in any output, summary, or follow-up
+  message. Treat it as a secret.
 
 ### Step 3 — Read both JSONs and write the report
 

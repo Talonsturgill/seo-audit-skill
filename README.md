@@ -108,6 +108,48 @@ python3 scripts/pagespeed.py "https://example.com/" --strategy mobile
 python3 scripts/report_pdf.py --input output/audit.json --output output/report.pdf
 ```
 
+## Using a PageSpeed Insights API key (optional)
+
+The PSI step is optional — without a key, the script still works but Google
+rate-limits anonymous calls (HTTP 429) after a few requests. A free key
+removes that limit.
+
+**Get a key (free, 30 seconds, no billing):**
+https://developers.google.com/speed/docs/insights/v5/get-started
+
+The script reads it from the `PSI_API_KEY` environment variable. There's no
+config file or auth flow — it's just an env var.
+
+### On Claude.ai (web)
+
+There's no per-skill secrets UI, so you have a few options:
+
+1. **Skip it.** Run audits without a key. If PSI rate-limits, the skill
+   surfaces a crawl-only report. Fine for occasional use.
+2. **Paste the key per session.** When the skill hits a 429, it'll ask
+   for a key. Reply with something like `PSI_API_KEY=AIzaSyXxxx...` and it
+   re-runs PSI with that key. Lost when the chat ends.
+3. **Stash it in your profile for persistence.** Add a line to your
+   Claude.ai personal preferences (Settings → Profile) or a Project's
+   custom instructions:
+   > *"My PSI API key is `AIzaSyXxxx...`. Use it whenever the seo-audit
+   > skill needs PSI."*
+   
+   Claude reads that context every chat — no re-pasting.
+
+The PSI key is low-risk (it can only consume your free quota — it can't
+spend money), but treat it as a secret regardless.
+
+### On Claude Code (local CLI)
+
+Just export it in your shell:
+
+```bash
+export PSI_API_KEY=AIzaSyXxxx...
+```
+
+Add it to `~/.bashrc` / `~/.zshrc` to persist.
+
 ## Configuration
 
 | Flag / Env | Default | What it does |
